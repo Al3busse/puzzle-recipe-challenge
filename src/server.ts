@@ -27,7 +27,7 @@ export async function startServer() {
   server.applyMiddleware({ app, path: "/graphql" });
 
   app.use("/", async (req: Request, res: Response) => {
-    res.json({ path: `${server.graphqlPath}` });
+    res.redirect("/graphql");
   });
 
   return app;

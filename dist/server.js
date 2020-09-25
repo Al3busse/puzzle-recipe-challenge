@@ -42,7 +42,6 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.startServer = void 0;
 require("dotenv").config();
 var express_1 = __importDefault(require("express"));
-var cors = require("cors");
 var apollo_server_express_1 = require("apollo-server-express");
 var index_1 = __importDefault(require("./graphql/resolvers/index"));
 var index_2 = __importDefault(require("./graphql/schemas/index"));
@@ -52,7 +51,6 @@ function startServer() {
         var _this = this;
         return __generator(this, function (_a) {
             app = express_1.default();
-            app.use(cors());
             server = new apollo_server_express_1.ApolloServer({
                 typeDefs: index_2.default,
                 resolvers: index_1.default,

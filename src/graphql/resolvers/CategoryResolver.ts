@@ -20,8 +20,10 @@ export default {
 
     getOneCategory: async (
       _: null,
-      { categoryId }: { categoryId: number }
+      { categoryId }: { categoryId: number },
+      context: { tokenBearer: string }
     ): Promise<Category> => {
+      await authUser(context.tokenBearer);
       let category = await getConnection()
         .getRepository(Category)
         .findOne(categoryId, { relations: ["recipes"] });
@@ -35,8 +37,10 @@ export default {
   Mutation: {
     createCategory: async (
       _: null,
-      { name }: { name: string }
+      { name }: { name: string },
+      context: { tokenBearer: string }
     ): Promise<Category> => {
+      await authUser(context.tokenBearer);
       let category = await getConnection()
         .getRepository(Category)
         .findOne({ where: { name } });
@@ -50,8 +54,10 @@ export default {
 
     updateCategory: async (
       _: null,
-      { categoryId, input }: { categoryId: number; input: { name: string } }
+      { categoryId, input }: { categoryId: number; input: { name: string } },
+      context: { tokenBearer: string }
     ): Promise<Category> => {
+      await authUser(context.tokenBearer);
       let categoryToUpdate = await getConnection()
         .getRepository(Category)
         .findOne(categoryId, { relations: ["recipes"] });
@@ -68,8 +74,10 @@ export default {
 
     deleteCategory: async (
       _: null,
-      { categoryId }: { categoryId: number }
+      { categoryId }: { categoryId: number },
+      context: { tokenBearer: string }
     ): Promise<Boolean> => {
+      await authUser(context.tokenBearer);
       let category = await getConnection()
         .getRepository(Category)
         .findOne(categoryId, { relations: ["recipes"] });

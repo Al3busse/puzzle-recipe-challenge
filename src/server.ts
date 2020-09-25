@@ -16,7 +16,6 @@ export async function startServer() {
       req: { headers: { authorization: string } };
     }) => {
       const token = req.headers.authorization || "";
-
       return { tokenBearer: token };
     },
     introspection: true,

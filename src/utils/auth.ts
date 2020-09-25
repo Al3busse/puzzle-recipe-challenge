@@ -1,5 +1,6 @@
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
+import jwt_decode from "jwt-decode";
 import { AuthenticationError } from "apollo-server-express";
 
 export const hashPassword = async (password: string) => {
@@ -32,4 +33,16 @@ export const authUser = async (tokenBearer: string) => {
     if (err) throw new AuthenticationError("Invalid Token");
   });
   return user;
+};
+
+export const decodeToken = async (tokenBearer: string) => {
+  const token = tokenBearer.split("Bearer ")[1];
+  const tokenAndSecret = "" + process.env.JWT_SECRET! + "///" + token + "";
+  const decoded: {
+    _userId: number;
+    iat: number;
+    exp: number;
+  } = await jwt_decode(tokenAndSecret);
+
+  return decoded._userId;
 };

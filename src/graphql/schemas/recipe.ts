@@ -4,7 +4,7 @@ export default gql`
   extend type Query {
     getRecipes: [Recipe]
     getOneRecipe(recipeId: ID!): Recipe
-    getMyRecipes(userId: ID!): [Recipe]
+    getMyRecipes: [Recipe]
   }
   type Recipe {
     id: ID!
@@ -12,6 +12,7 @@ export default gql`
     description: String!
     ingredients: String!
     category: Category!
+    user: User!
   }
   extend type Mutation {
     createRecipe(input: recipeInput): Recipe

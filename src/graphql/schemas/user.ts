@@ -5,12 +5,7 @@ export default gql`
     id: ID!
     name: String!
     email: String!
-    password: String!
     recipes: [Recipe]!
-  }
-
-  extend type Query {
-    getUsers: [User]!
   }
 
   type Token {

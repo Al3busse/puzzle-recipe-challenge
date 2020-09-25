@@ -3,10 +3,16 @@ import { UserInputError } from "apollo-server-express";
 import { Recipe } from "../../entity/Recipe";
 import { Category } from "../../entity/Category";
 import { User } from "../../entity/User";
+import { authUser, decodeToken } from "../../utils/auth";
 
 export default {
   Query: {
-    getRecipes: async (_: null, __: null): Promise<Recipe[]> => {
+    getRecipes: async (
+      _: null,
+      __: null,
+      context: { tokenBearer: string }
+    ): Promise<Recipe[]> => {
+      await authUser(context.tokenBearer);
       let recipes = await Recipe.find({ relations: ["category", "user"] });
       if (recipes.length != 0) {
         return recipes;
@@ -14,10 +20,15 @@ export default {
       throw new UserInputError("There are no Recipes yet.");
     },
 
-    getOneRecipe: async (_: null, { id }: { id: number }): Promise<Recipe> => {
+    getOneRecipe: async (
+      _: null,
+      { recipeId }: { recipeId: number },
+      context: { tokenBearer: string }
+    ): Promise<Recipe> => {
+      await authUser(context.tokenBearer);
       let recipe = await getConnection()
         .getRepository(Recipe)
-        .findOne(id, { relations: ["category", "user"] });
+        .findOne(recipeId, { relations: ["category", "user"] });
       if (recipe) {
         return recipe;
       }
@@ -26,11 +37,14 @@ export default {
 
     getMyRecipes: async (
       _: null,
-      { user }: { user: number }
+      __: null,
+      context: { tokenBearer: string }
     ): Promise<Recipe[]> => {
-      let recipes = await Recipe.find({
+      await authUser(context.tokenBearer);
+      const user = await decodeToken(context.tokenBearer);
+      const recipes = await Recipe.find({
         where: { user: user },
-        relations: ["category", "user"],
+        relations: ["user", "category"],
       });
       if (recipes.length != 0) {
         return recipes;
@@ -41,7 +55,6 @@ export default {
   Mutation: {
     createRecipe: async (
       _: null,
-      // { token }: { token: number },
       {
         input,
       }: {
@@ -49,10 +62,12 @@ export default {
           name: string;
           description: string;
           ingredients: string;
-          category: number;
+          categoryId: number;
         };
-      }
+      },
+      context: { tokenBearer: string }
     ): Promise<Recipe> => {
+      await authUser(context.tokenBearer);
       let recipe = await getConnection()
         .getRepository(Recipe)
         .findOne({ where: { name: input.name } });
@@ -61,26 +76,27 @@ export default {
         throw new UserInputError("There is a Recipe with that name already.");
       }
       let categoryCheck = (await getRepository(Category).findOne(
-        input.category
+        input.categoryId
       )) as Category;
       if (!categoryCheck) {
         throw new UserInputError("Category not found");
       }
-
-      //let user = (await getRepository(User).findOne(token)) as User;
+      const userId = await decodeToken(context.tokenBearer);
+      const user = (await getRepository(User).findOne(userId)) as User;
 
       let newRecipe = new Recipe();
       newRecipe.name = input.name;
       newRecipe.ingredients = input.ingredients;
       newRecipe.description = input.description;
       newRecipe.category = categoryCheck;
-      //newRecipe.user = input.user;
+      newRecipe.user = user;
 
       return await getManager().save(newRecipe);
     },
 
     updateRecipe: async (
       _: null,
+
       {
         id,
         input,
@@ -92,8 +108,10 @@ export default {
           ingredients: string;
           category: number;
         };
-      }
+      },
+      context: { tokenBearer: string }
     ): Promise<Recipe> => {
+      await authUser(context.tokenBearer);
       let recipeToUpdate = await getConnection()
         .getRepository(Recipe)
         .findOne({ id }, { relations: ["category", "user"] });
@@ -121,8 +139,10 @@ export default {
 
     deleteRecipe: async (
       _: null,
-      { recipeId }: { recipeId: number }
+      { recipeId }: { recipeId: number },
+      context: { tokenBearer: string }
     ): Promise<Boolean> => {
+      await authUser(context.tokenBearer);
       let recipe = await getConnection()
         .getRepository(Recipe)
         .findOne(recipeId, { relations: ["category", "user"] });

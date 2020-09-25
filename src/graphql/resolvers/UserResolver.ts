@@ -5,15 +5,7 @@ import { getToken, hashPassword, validatePassword } from "../../utils/auth";
 import { User } from "../../entity/User";
 
 export default {
-  Query: {
-    getUsers: async (_: null): Promise<User[]> => {
-      let users = await User.find();
-      if (users.length != 0) {
-        return users;
-      }
-      throw new UserInputError("There are no Users yet.");
-    },
-  },
+  Query: {},
 
   Mutation: {
     signUp: async (

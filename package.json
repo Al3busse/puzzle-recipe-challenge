@@ -4,7 +4,8 @@
   "description": "a crud back end challenge for puzzle",
   "main": "index.js",
   "scripts": {
-    "dev": "nodemon src/index.ts --exec ts-node"
+    "dev": "nodemon src/index.ts --exec ts-node",
+    "start": "ts-node src/index.ts"
   },
   "author": "al3busse",
   "license": "ISC",

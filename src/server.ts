@@ -1,8 +1,9 @@
 require("dotenv").config();
 import express from "express";
-import { ApolloServer, AuthenticationError } from "apollo-server-express";
+import { ApolloServer } from "apollo-server-express";
 import resolvers from "./graphql/resolvers/index";
 import typeDefs from "./graphql/schemas/index";
+import { Request, Response } from "express";
 
 export async function startServer() {
   const app = express();
@@ -24,6 +25,10 @@ export async function startServer() {
   });
 
   server.applyMiddleware({ app, path: "/graphql" });
+
+  app.use("/", async (req: Request, res: Response) => {
+    res.json({ path: `${server.graphqlPath}` });
+  });
 
   return app;
 }

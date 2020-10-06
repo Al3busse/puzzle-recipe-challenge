@@ -8,11 +8,17 @@ export default gql`
     recipes: [Recipe]!
   }
 
+  type RegisteredUser {
+    id: ID!
+    name: String!
+    email: String!
+  }
+
   type Token {
     token: String!
   }
   extend type Mutation {
-    signUp(input: signUpInput): User
+    signUp(input: signUpInput): RegisteredUser
     logIn(input: loginInput): Token
   }
   input signUpInput {

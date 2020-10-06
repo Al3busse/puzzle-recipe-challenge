@@ -10,12 +10,16 @@ export default {
       __: null,
       context: { tokenBearer: string }
     ): Promise<Category[]> => {
-      await authUser(context.tokenBearer);
-      let categories = await Category.find({ relations: ["recipes"] });
-      if (categories.length != 0) {
-        return categories;
+      try {
+        await authUser(context.tokenBearer);
+        let categories = await Category.find({ relations: ["recipes"] });
+        if (categories.length != 0) {
+          return categories;
+        }
+        throw new UserInputError("There are no Categories yet.");
+      } catch (err) {
+        return err;
       }
-      throw new UserInputError("There are no Categories yet.");
     },
 
     getOneCategory: async (
@@ -23,14 +27,18 @@ export default {
       { categoryId }: { categoryId: number },
       context: { tokenBearer: string }
     ): Promise<Category> => {
-      await authUser(context.tokenBearer);
-      let category = await getConnection()
-        .getRepository(Category)
-        .findOne(categoryId, { relations: ["recipes"] });
-      if (category) {
-        return category;
+      try {
+        await authUser(context.tokenBearer);
+        let category = await getConnection()
+          .getRepository(Category)
+          .findOne(categoryId, { relations: ["recipes"] });
+        if (category) {
+          return category;
+        }
+        throw new UserInputError("There is no Category with this ID");
+      } catch (err) {
+        return err;
       }
-      throw new UserInputError("There is no Category with this ID");
     },
   },
 
@@ -40,16 +48,22 @@ export default {
       { name }: { name: string },
       context: { tokenBearer: string }
     ): Promise<Category> => {
-      await authUser(context.tokenBearer);
-      let category = await getConnection()
-        .getRepository(Category)
-        .findOne({ where: { name } });
-      if (category) {
-        throw new UserInputError("There is a Category with that name already.");
+      try {
+        await authUser(context.tokenBearer);
+        let category = await getConnection()
+          .getRepository(Category)
+          .findOne({ where: { name } });
+        if (category) {
+          throw new UserInputError(
+            "There is a Category with that name already."
+          );
+        }
+        let newCategory = new Category();
+        newCategory.name = name;
+        return getManager().save(newCategory);
+      } catch (err) {
+        return err;
       }
-      let newCategory = new Category();
-      newCategory.name = name;
-      return getManager().save(newCategory);
     },
 
     updateCategory: async (
@@ -57,18 +71,22 @@ export default {
       { categoryId, input }: { categoryId: number; input: { name: string } },
       context: { tokenBearer: string }
     ): Promise<Category> => {
-      await authUser(context.tokenBearer);
-      let categoryToUpdate = await getConnection()
-        .getRepository(Category)
-        .findOne(categoryId, { relations: ["recipes"] });
-      if (!categoryToUpdate) {
-        throw new UserInputError("There is no Category with this ID");
-      } else {
-        categoryToUpdate.name = input.name;
-        let updatedCategory = await getConnection()
+      try {
+        await authUser(context.tokenBearer);
+        let categoryToUpdate = await getConnection()
           .getRepository(Category)
-          .save(categoryToUpdate);
-        return updatedCategory;
+          .findOne(categoryId, { relations: ["recipes"] });
+        if (!categoryToUpdate) {
+          throw new UserInputError("There is no Category with this ID");
+        } else {
+          categoryToUpdate.name = input.name;
+          let updatedCategory = await getConnection()
+            .getRepository(Category)
+            .save(categoryToUpdate);
+          return updatedCategory;
+        }
+      } catch (err) {
+        return err;
       }
     },
 
@@ -77,20 +95,24 @@ export default {
       { categoryId }: { categoryId: number },
       context: { tokenBearer: string }
     ): Promise<Boolean> => {
-      await authUser(context.tokenBearer);
-      let category = await getConnection()
-        .getRepository(Category)
-        .findOne(categoryId, { relations: ["recipes"] });
-      if (!category) {
-        throw new UserInputError("There is no Category with this ID");
+      try {
+        await authUser(context.tokenBearer);
+        let category = await getConnection()
+          .getRepository(Category)
+          .findOne(categoryId, { relations: ["recipes"] });
+        if (!category) {
+          throw new UserInputError("There is no Category with this ID");
+        }
+        await getConnection()
+          .createQueryBuilder()
+          .delete()
+          .from(Category)
+          .where("id = :id", { id: categoryId })
+          .execute();
+        return true;
+      } catch (err) {
+        return err;
       }
-      await getConnection()
-        .createQueryBuilder()
-        .delete()
-        .from(Category)
-        .where("id = :id", { id: categoryId })
-        .execute();
-      return true;
     },
   },
 };

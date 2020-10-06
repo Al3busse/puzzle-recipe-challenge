@@ -20,25 +20,29 @@ export default {
         };
       }
     ): Promise<User> => {
-      const { error } = registrationSchema.validate(input);
-      if (error) throw new UserInputError(error.details[0].message);
+      try {
+        const { error } = registrationSchema.validate(input);
+        if (error) throw new UserInputError(error.details[0].message);
 
-      const userExist = await getConnection()
-        .getRepository(User)
-        .findOne({
-          where: { email: input.email },
-        });
+        const userExist = await getConnection()
+          .getRepository(User)
+          .findOne({
+            where: { email: input.email },
+          });
 
-      if (userExist) throw new UserInputError("Email is already in use.");
+        if (userExist) throw new UserInputError("Email is already in use.");
 
-      const newUser = new User();
+        const newUser = new User();
 
-      newUser.name = input.name;
-      newUser.email = input.email;
-      newUser.password = await hashPassword(input.password);
+        newUser.name = input.name;
+        newUser.email = input.email;
+        newUser.password = await hashPassword(input.password);
 
-      const savedUser = await getManager().save(newUser);
-      return savedUser as User;
+        const savedUser = await getManager().save(newUser);
+        return savedUser as User;
+      } catch (err) {
+        return err;
+      }
     },
 
     logIn: async (
@@ -53,27 +57,32 @@ export default {
         };
       }
     ) => {
-      const { error } = loginSchema.validate(input);
-      if (error) throw new UserInputError(error.details[0].message);
+      try {
+        const { error } = loginSchema.validate(input);
+        if (error) throw new UserInputError(error.details[0].message);
 
-      const userExist = await getConnection()
-        .getRepository(User)
-        .findOne({
-          where: { email: input.email },
-        });
+        const userExist = await getConnection()
+          .getRepository(User)
+          .findOne({
+            where: { email: input.email },
+          });
 
-      if (!userExist) throw new UserInputError("Wrong email or password.");
+        if (!userExist) throw new UserInputError("Wrong email or password.");
 
-      const validPassword = await validatePassword(
-        input.password,
-        userExist.password
-      );
+        const validPassword = await validatePassword(
+          input.password,
+          userExist.password
+        );
 
-      if (!validPassword) throw new UserInputError("Wrong email or password.");
+        if (!validPassword)
+          throw new UserInputError("Wrong email or password.");
 
-      const token = getToken(userExist.id);
+        const token = getToken(userExist.id);
 
-      return { token };
+        return { token };
+      } catch (err) {
+        return err;
+      }
     },
   },
 };
